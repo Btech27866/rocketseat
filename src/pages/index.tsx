@@ -1,6 +1,7 @@
 import styles from '../style/home.module.scss'
 import {SubscribeButton} from '../components/SubscribeButton'
 import Head from 'next/head'
+import {GetServerSideProps} from 'next'
 
 export default function Home() {
   return (
