@@ -15,7 +15,9 @@ type User = {
 
 export default async (req:NextApiRequest, res:NextApiResponse) => {
     if(req.method === 'POST') {
+
         const session = await getSession({req})
+
         const user = await fauna.query<User>(
             q.Get(
                 q.Match(
@@ -24,12 +26,15 @@ export default async (req:NextApiRequest, res:NextApiResponse) => {
                 )
             )
         )
+
         let custumerId = user.data.stripe_costumer_id
+
         if(!custumerId){
             const stripeConstumer = await stripe.customers.create({
                 email: session.user.email,
                 //metadata
             })
+
             await fauna.query(
                 q.Update(
                     q.Ref(q.Collection('users'), user.ref.id),
@@ -40,7 +45,9 @@ export default async (req:NextApiRequest, res:NextApiResponse) => {
                     }
                 )
             )
+
             custumerId = stripeConstumer.id
+
         }
         
         const stripeCheckoutSession = await stripe.checkout.sessions.create({
@@ -55,6 +62,7 @@ export default async (req:NextApiRequest, res:NextApiResponse) => {
             success_url: process.env.STRIPE_SUCCESS_URL,
             cancel_url: process.env.STRIPE_CANCEL_URL
         })
+        
         return res.status(200).json({ sessionId: stripeCheckoutSession.id })
     }else{
         res.setHeader('Allow', 'POST')
